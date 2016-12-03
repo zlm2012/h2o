@@ -205,7 +205,7 @@ static h2o_iovec_t build_request(h2o_req_t *req, int keepalive, int is_websocket
     }
 
     h2o_headers_t rewrited_headers = req->headers;
-    if (req->overrides->header_cmds != NULL && req->overrides->header_cmds->size != 0) {
+    if (req->overrides != NULL && req->overrides->header_cmds != NULL && req->overrides->header_cmds->size != 0) {
         rewrited_headers.entries = NULL;
         rewrited_headers.size = 0;
         rewrited_headers.capacity = 0;
