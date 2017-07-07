@@ -122,6 +122,10 @@ void h2o_context_init(h2o_context_t *ctx, h2o_loop_t *loop, h2o_globalconf_t *co
         h2o_context_init_pathconf_context(ctx, &hostconf->fallback_path);
     }
     pthread_mutex_unlock(&mutex);
+#if H2O_USE_EIGHT_BYTES_ATOMIC
+#else
+    pthread_mutex_init(&h2o_connection_id_mutex, NULL);
+#endif
 }
 
 void h2o_context_dispose(h2o_context_t *ctx)

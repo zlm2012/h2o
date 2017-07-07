@@ -787,3 +787,8 @@ const char *h2o_npn_protocols = NPN_PROTOCOLS_CORE "\x08"
                                                    "http/1.1";
 
 uint64_t h2o_connection_id = 0;
+#if H2O_USE_EIGHT_BYTES_ATOMIC
+#else
+pthread_mutex_t h2o_connection_id_mutex;
+#endif
+

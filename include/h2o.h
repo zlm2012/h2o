@@ -52,6 +52,10 @@ extern "C" {
 #include "h2o/url.h"
 #include "h2o/version.h"
 
+#ifndef H2O_USE_EIGHT_BYTES_ATOMIC
+#define H2O_USE_EIGHT_BYTES_ATOMIC 0
+#endif
+
 #ifndef H2O_USE_BROTLI
 /* disabled for all but the standalone server, since the encoder is written in C++ */
 #define H2O_USE_BROTLI 0
@@ -1203,7 +1207,10 @@ int h2o_get_compressible_types(const h2o_headers_t *headers);
 h2o_iovec_t h2o_build_destination(h2o_req_t *req, const char *prefix, size_t prefix_len, int use_path_normalized);
 
 extern uint64_t h2o_connection_id;
-
+#if H2O_USE_EIGHT_BYTES_ATOMIC
+#else
+extern pthread_mutex_t h2o_connection_id_mutex;
+#endif
 /* request */
 
 /**
@@ -1911,7 +1918,13 @@ inline h2o_conn_t *h2o_create_connection(size_t sz, h2o_context_t *ctx, h2o_host
     conn->ctx = ctx;
     conn->hosts = hosts;
     conn->connected_at = connected_at;
+#if H2O_USE_EIGHT_BYTES_ATOMIC
     conn->id = __sync_add_and_fetch(&h2o_connection_id, 1);
+#else
+    pthread_mutex_lock(&h2o_connection_id_mutex);
+    conn->id = ++h2o_connection_id;
+    pthread_mutex_unlock(&h2o_connection_id_mutex);
+#endif
     conn->callbacks = callbacks;
 
     return conn;
